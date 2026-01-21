@@ -103,6 +103,9 @@ class SchoolDatabase:
     
     # === CRUD Operations for Students ===
     
+    # Updatable fields for student records
+    UPDATABLE_STUDENT_FIELDS = {'name', 'age', 'grade_level', 'email', 'enrollment_date'}
+    
     def add_student(self, name: str, age: int, grade_level: int, email: str, 
                     enrollment_date: str = None) -> int:
         """Add a new student to the database."""
@@ -132,13 +135,23 @@ class SchoolDatabase:
     
     def update_student(self, student_id: int, **kwargs) -> bool:
         """Update student information."""
-        allowed_fields = ['name', 'age', 'grade_level', 'email', 'enrollment_date']
-        updates = {k: v for k, v in kwargs.items() if k in allowed_fields}
+        updates = {k: v for k, v in kwargs.items() if k in self.UPDATABLE_STUDENT_FIELDS}
         
         if not updates:
             return False
         
-        set_clause = ", ".join([f"{k} = ?" for k in updates.keys()])
+        # Build parameterized query safely
+        set_parts = []
+        for field in updates.keys():
+            # Whitelist validation - only allow known fields
+            if field not in self.UPDATABLE_STUDENT_FIELDS:
+                continue
+            set_parts.append(f"{field} = ?")
+        
+        if not set_parts:
+            return False
+        
+        set_clause = ", ".join(set_parts)
         values = list(updates.values()) + [student_id]
         
         cursor = self.conn.cursor()
@@ -311,7 +324,8 @@ class SchoolDatabase:
                 }
             
             # Search for specific student by name
-            name_match = re.search(r'named? ([A-Za-z\s]+)', query_lower)
+            # Updated pattern to handle diverse name formats (hyphens, apostrophes, unicode)
+            name_match = re.search(r"named?\s+([A-Za-z\s\-']+)", query_lower, re.UNICODE)
             if name_match:
                 name = name_match.group(1).strip()
                 return {
@@ -330,7 +344,8 @@ class SchoolDatabase:
                 }
             
             # Search by subject
-            subject_match = re.search(r'teach(?:ing|es)? ([A-Za-z\s]+)', query_lower)
+            # Updated pattern to handle compound subjects and special characters
+            subject_match = re.search(r"teach(?:ing|es)?\s+([A-Za-z\s\-]+)", query_lower, re.UNICODE)
             if subject_match:
                 subject = subject_match.group(1).strip()
                 return {
@@ -464,8 +479,11 @@ class SchoolDatabase:
             """)
         else:
             # Recommend courses in top subjects not yet enrolled
+            # Safely construct parameterized query with correct number of placeholders
+            # Limit to maximum of 10 subjects to prevent potential issues
+            top_subjects = top_subjects[:10]
             placeholders = ','.join(['?' for _ in top_subjects])
-            cursor.execute(f"""
+            query_sql = f"""
                 SELECT c.*, t.name as teacher_name
                 FROM courses c
                 LEFT JOIN teachers t ON c.teacher_id = t.id
@@ -474,7 +492,8 @@ class SchoolDatabase:
                     SELECT course_id FROM enrollments WHERE student_id = ?
                 )
                 LIMIT 5
-            """, top_subjects + [student_id])
+            """
+            cursor.execute(query_sql, top_subjects + [student_id])
         
         return [dict(row) for row in cursor.fetchall()]
     
