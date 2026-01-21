@@ -8,7 +8,10 @@ An AI-powered database system for school management with intelligent query capab
 # Generate sample data
 python3 sample_data.py
 
-# Run the demo
+# Run the interactive CLI
+python3 interactive_cli.py
+
+# Or run the full demo
 python3 demo.py
 ```
 
@@ -16,9 +19,27 @@ python3 demo.py
 
 - **Complete School Management**: Students, Teachers, Courses, Grades
 - **AI-Powered Natural Language Queries**: Ask questions in plain English
+- **Interactive CLI**: User-friendly command-line interface
 - **Intelligent Recommendations**: Smart course suggestions based on performance
 - **Analytics**: Automatic performance tracking and statistics
 - **Zero External Dependencies**: Uses Python's built-in SQLite
+
+## 🎮 Interactive Mode
+
+The interactive CLI allows you to query the database using natural language:
+
+```bash
+$ python3 interactive_cli.py
+
+🔍 Query: List all students
+✓ Found 20 result(s)
+
+🔍 Query: Show me the top students
+✓ Found 10 result(s)
+
+🔍 Query: Find teacher teaching Mathematics
+✓ Found 1 result(s)
+```
 
 ## 📚 Documentation
 
@@ -43,6 +64,7 @@ with SchoolDatabase("school.db") as db:
 ## 🏗️ Project Structure
 
 - `school_database.py` - Core database system with AI features
+- `interactive_cli.py` - Interactive command-line interface
 - `sample_data.py` - Sample data generator
-- `demo.py` - Interactive demonstration
+- `demo.py` - Automated demonstration
 - `DATABASE_DOCUMENTATION.md` - Complete documentation
