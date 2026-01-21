@@ -1,0 +1,11 @@
+# AI-Powered School Database System
+# No external dependencies required - uses Python standard library only
+
+# Python 3.6 or higher is required
+# All necessary modules are built-in:
+# - sqlite3 (database)
+# - json (data handling)
+# - datetime (date/time operations)
+# - typing (type hints)
+# - re (regular expressions for NL queries)
+# - random (sample data generation)
